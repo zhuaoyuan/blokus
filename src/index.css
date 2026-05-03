@@ -1,0 +1,242 @@
+:root {
+  font-family: "DM Sans", "PingFang SC", system-ui, sans-serif;
+  line-height: 1.45;
+  color: #e8ecf4;
+  background: #0e1117;
+  --cell-border: #1e2535;
+  --cell-bg: #151b28;
+  --cell-hover: #1c2434;
+  --accent: #5b8cff;
+  --c0: #2d62d8;
+  --c1: #d4c132;
+  --c2: #c42d2d;
+  --c3: #2a9d4e;
+  --duo0: #7b4bd1;
+  --duo1: #e07a28;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  border: 1px solid #2a3348;
+  background: #1a2233;
+  color: #e8ecf4;
+  padding: 0.45rem 0.85rem;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: #222b3f;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+h1 {
+  font-size: 1.35rem;
+  font-weight: 650;
+  margin: 0 0 0.35rem;
+}
+
+.app-shell {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+.menu-card {
+  background: #141a26;
+  border: 1px solid #252d42;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  max-width: 420px;
+}
+
+.menu-card p {
+  margin: 0 0 1rem;
+  color: #9aa6bf;
+  font-size: 0.92rem;
+}
+
+.menu-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.game-layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.side-panel {
+  flex: 1 1 280px;
+  min-width: 240px;
+  background: #141a26;
+  border: 1px solid #252d42;
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+}
+
+.hud {
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.hud strong {
+  color: #fff;
+}
+
+.tray-title {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #7a869e;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.tray-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 6px;
+}
+
+.tray-piece {
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #2a3348;
+  background: #0f141f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+}
+
+.tray-piece:hover {
+  border-color: #4a5870;
+}
+
+.tray-piece.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.tray-piece.used {
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.board-wrap {
+  flex: 0 0 auto;
+  border-radius: 12px;
+  padding: 10px;
+  background: #0b0e15;
+  border: 1px solid #252d42;
+}
+
+.board-grid {
+  display: grid;
+  gap: 1px;
+  background: #1e2535;
+  border: 1px solid #2a3348;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.board-cell {
+  width: var(--cell-size, 18px);
+  height: var(--cell-size, 18px);
+  background: var(--cell-bg);
+  cursor: crosshair;
+}
+
+.board-cell:hover {
+  background: var(--cell-hover);
+}
+
+.board-cell.preview {
+  opacity: 0.55;
+}
+
+.board-cell.preview-invalid {
+  background: #4a2525;
+}
+
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 1rem;
+}
+
+.modal {
+  background: #141a26;
+  border: 1px solid #353e56;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.modal h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.score-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.score-table th,
+.score-table td {
+  border-bottom: 1px solid #2a3348;
+  padding: 0.35rem 0.25rem;
+  text-align: left;
+}
+
+.orient-hint {
+  font-size: 0.78rem;
+  color: #7a869e;
+  margin-top: 0.35rem;
+}
+
+kbd {
+  font-size: 0.82em;
+  padding: 0.08em 0.35em;
+  border-radius: 4px;
+  border: 1px solid #3d4a63;
+  background: #0f141f;
+}
