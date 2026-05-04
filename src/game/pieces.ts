@@ -1,4 +1,4 @@
-import { allOrientations } from "./transforms";
+import { allOrientations, flipShapeHorizontalNormalized, shapeKey } from "./transforms";
 import type { Point } from "./types";
 
 /** 相对坐标，已归一化到 min x=min y=0 */
@@ -151,3 +151,12 @@ export const PIECE_ORIENTATIONS: Record<string, Point[][]> = (() => {
   }
   return m;
 })();
+
+/** 当前朝向在水平镜像后对应的朝向下标（对称棋子可能不变） */
+export function orientIndexAfterHorizontalFlip(pieceId: string, orientIndex: number): number {
+  const orients = PIECE_ORIENTATIONS[pieceId];
+  if (!orients?.length) return 0;
+  const k = shapeKey(flipShapeHorizontalNormalized(orients[orientIndex]!));
+  const i = orients.findIndex((o) => shapeKey(o) === k);
+  return i >= 0 ? i : orientIndex;
+}

@@ -7,7 +7,7 @@ import {
 } from "../boardCellPrefs";
 import { GameBoard } from "./GameBoard";
 import { PieceMini } from "./PieceMini";
-import { PIECE_ORIENTATIONS } from "../game/pieces";
+import { orientIndexAfterHorizontalFlip, PIECE_ORIENTATIONS } from "../game/pieces";
 import { isValidPlacement } from "../game/rules";
 import { computeScores } from "../game/scoring";
 import { createGame, tryApplyMove, undo, type GameState } from "../game/state";
@@ -207,6 +207,11 @@ export function GameScreen({
     setOrient((o) => (o + d + n * 10) % n);
   }, [selectedId]);
 
+  const flipOrientHorizontal = useCallback(() => {
+    if (!selectedId) return;
+    setOrient((o) => orientIndexAfterHorizontalFlip(selectedId, o));
+  }, [selectedId]);
+
   const scoreResult = useMemo(
     () => computeScores(game.variant, game.hands, game.lastPieceByColor),
     [game],
@@ -314,6 +319,14 @@ export function GameScreen({
               <button type="button" onClick={() => cycleOrient(-1)} disabled={!selectedId || !canInteract}>
                 旋转 ↺
               </button>
+              <button
+                type="button"
+                onClick={flipOrientHorizontal}
+                disabled={!selectedId || !canInteract}
+                title="水平翻转（左右镜像）"
+              >
+                水平翻转 ⇄
+              </button>
               <button type="button" onClick={() => cycleOrient(1)} disabled={!selectedId || !canInteract}>
                 旋转 ↻
               </button>
@@ -329,7 +342,7 @@ export function GameScreen({
             </div>
             <p className="orient-hint">
               先点击棋子池选中棋子，再移动鼠标预览，最后点击棋盘落子。旋转可用按钮或键盘{" "}
-              <kbd>[</kbd> / <kbd>]</kbd>。落子后自动轮到下一颜色（无法下子会自动 pass）。
+              <kbd>[</kbd> / <kbd>]</kbd>；水平翻转用「水平翻转」按钮。落子后自动轮到下一颜色（无法下子会自动 pass）。
               {mode === "online" && " 联机模式无撤销，以服务器判定为准。"}
             </p>
           </div>

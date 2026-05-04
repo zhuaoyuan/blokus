@@ -15,12 +15,22 @@ function cellsKey(cells: Point[]): string {
     .join("|");
 }
 
+/** 与 `PIECE_ORIENTATIONS` 中形状比对用 */
+export function shapeKey(cells: Point[]): string {
+  return cellsKey(cells);
+}
+
 function rotate90(cells: Point[]): Point[] {
   return cells.map((c) => ({ x: -c.y, y: c.x }));
 }
 
 function flipH(cells: Point[]): Point[] {
   return cells.map((c) => ({ x: -c.x, y: c.y }));
+}
+
+/** 水平镜像（左右翻转）后归一化到 min x = min y = 0 */
+export function flipShapeHorizontalNormalized(cells: Point[]): Point[] {
+  return normalize(flipH(cells));
 }
 
 /** 去重后的全部朝向（旋转 + 镜像） */
