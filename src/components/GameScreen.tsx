@@ -1,4 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  BOARD_CELL_LIMITS,
+  clampBoardCell,
+  loadBoardCellSizes,
+  saveBoardCellSizes,
+} from "../boardCellPrefs";
 import { GameBoard } from "./GameBoard";
 import { PieceMini } from "./PieceMini";
 import { PIECE_ORIENTATIONS } from "../game/pieces";
@@ -34,6 +40,10 @@ const ALL_SORTED_IDS = [
   "Z5",
 ];
 
+function colorsForPlayer(variant: Variant, player: 0 | 1): ColorId[] {
+  return colorsInPlay(variant).filter((c) => colorToPlayer(variant, c) === player);
+}
+
 function pieceFill(variant: Variant, color: ColorId): string {
   if (variant === "duo") {
     return color === 0 ? "var(--duo0)" : "var(--duo1)";
@@ -48,6 +58,62 @@ function pieceFill(variant: Variant, color: ColorId): string {
       } as const
     )[color]
   );
+}
+
+function PieceTraysForColors({
+  variant,
+  game,
+  colors,
+  selectedId,
+  orient,
+  setSelectedId,
+  setOrient,
+  canInteract,
+}: {
+  variant: Variant;
+  game: GameState;
+  colors: ColorId[];
+  selectedId: string | null;
+  orient: number;
+  setSelectedId: (id: string | null) => void;
+  setOrient: (n: number) => void;
+  canInteract: boolean;
+}) {
+  return colors.map((c, idx) => (
+    <div key={c}>
+      <div className="tray-title" style={{ marginTop: idx === 0 ? 4 : 8 }}>
+        {displayColorName(variant, c)}
+      </div>
+      <div className="tray-grid">
+        {ALL_SORTED_IDS.map((id) => {
+          const inHand = game.hands[c]?.has(id) ?? false;
+          const isCurrent = c === game.currentColor;
+          const sel = isCurrent && selectedId === id && inHand ? " selected" : "";
+          const used = !inHand ? " used" : "";
+          return (
+            <button
+              key={`${c}-${id}`}
+              type="button"
+              className={`tray-piece${sel}${used}`}
+              disabled={!inHand || !isCurrent || game.gameOver || !canInteract}
+              onClick={() => {
+                if (!isCurrent || !inHand || !canInteract) return;
+                setSelectedId(id);
+                setOrient(0);
+              }}
+            >
+              <PieceMini
+                pieceId={id}
+                orientIndex={c === game.currentColor && selectedId === id ? orient : 0}
+                cellPx={5}
+                fill={pieceFill(variant, c)}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  ));
 }
 
 function usePreview(
@@ -90,6 +156,7 @@ export function GameScreen({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [orient, setOrient] = useState(0);
   const [hover, setHover] = useState<Point | null>(null);
+  const [boardCellByVariant, setBoardCellByVariant] = useState(loadBoardCellSizes);
 
   const canInteract =
     mode === "local" ||
@@ -102,7 +169,11 @@ export function GameScreen({
     hover,
   );
 
-  const cellSize = game.variant === "duo" ? 22 : 17;
+  const cellSize = boardCellByVariant[game.variant];
+
+  useEffect(() => {
+    saveBoardCellSizes(boardCellByVariant);
+  }, [boardCellByVariant]);
 
   useEffect(() => {
     if (!canInteract) {
@@ -191,91 +262,93 @@ export function GameScreen({
         )}
       </div>
 
-      <div className="game-layout">
-        <div className="board-wrap">
-          <GameBoard
-            variant={game.variant}
-            board={game.board}
-            cellSize={cellSize}
-            previewCells={previewCells}
-            previewInvalid={previewBad}
-            onHover={setHover}
-            onClickCell={onPlace}
-          />
-          <div className="controls-row">
-            <button type="button" onClick={() => cycleOrient(-1)} disabled={!selectedId || !canInteract}>
-              旋转 ↺
-            </button>
-            <button type="button" onClick={() => cycleOrient(1)} disabled={!selectedId || !canInteract}>
-              旋转 ↻
-            </button>
-            {showUndo && (
-              <button
-                type="button"
-                onClick={() => setGame(undo(game) ?? game)}
-                disabled={game.history.length === 0}
-              >
-                撤销
-              </button>
-            )}
-          </div>
-          <p className="orient-hint">
-            先点击棋子池选中棋子，再移动鼠标预览，最后点击棋盘落子。旋转可用按钮或键盘{" "}
-            <kbd>[</kbd> / <kbd>]</kbd>。落子后自动轮到下一颜色（无法下子会自动 pass）。
-            {mode === "online" && " 联机模式无撤销，以服务器判定为准。"}
-          </p>
-        </div>
-
-        <div className="side-panel">
-          <div className="tray-title">棋子池（仅当前回合颜色可选）</div>
-          {colorsInPlay(game.variant).map((c) => (
-            <div key={c}>
-              <div
-                className="tray-title"
-                style={{ marginTop: c === 0 ? 0 : 8 }}
-              >
-                {displayColorName(game.variant, c)}
-                {game.variant === "classic2p" &&
-                  ` · 玩家 ${colorToPlayer(game.variant, c) === 0 ? "A" : "B"}`}
-                {game.variant === "duo" && ` · 玩家 ${c === 0 ? "A" : "B"}`}
-              </div>
-              <div
-                className="tray-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(52px, 1fr))",
-                }}
-              >
-                {ALL_SORTED_IDS.map((id) => {
-                  const inHand = game.hands[c]?.has(id) ?? false;
-                  const isCurrent = c === game.currentColor;
-                  const sel =
-                    isCurrent && selectedId === id && inHand ? " selected" : "";
-                  const used = !inHand ? " used" : "";
-                  return (
-                    <button
-                      key={`${c}-${id}`}
-                      type="button"
-                      className={`tray-piece${sel}${used}`}
-                      disabled={!inHand || !isCurrent || game.gameOver || !canInteract}
-                      onClick={() => {
-                        if (!isCurrent || !inHand || !canInteract) return;
-                        setSelectedId(id);
-                        setOrient(0);
-                      }}
-                    >
-                      <PieceMini
-                        pieceId={id}
-                        orientIndex={c === game.currentColor && selectedId === id ? orient : 0}
-                        cellPx={5}
-                        fill={pieceFill(game.variant, c)}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+      <div className="game-play-stage">
+        <p className="tray-global-hint">
+          棋子池在棋盘两侧；仅当前回合颜色可选（非回合侧为灰显）。
+        </p>
+        <div className="game-layout">
+          <aside className="piece-tray-side piece-tray-side--left">
+            <div className="side-panel piece-tray-panel">
+              <div className="tray-column-title">玩家 A</div>
+              <PieceTraysForColors
+                variant={game.variant}
+                game={game}
+                colors={colorsForPlayer(game.variant, 0)}
+                selectedId={selectedId}
+                orient={orient}
+                setSelectedId={setSelectedId}
+                setOrient={setOrient}
+                canInteract={canInteract}
+              />
             </div>
-          ))}
+          </aside>
+
+          <div className="board-wrap">
+            <div className="board-size-row">
+              <label htmlFor="board-cell-range">棋盘大小</label>
+              <input
+                id="board-cell-range"
+                type="range"
+                min={BOARD_CELL_LIMITS[game.variant].min}
+                max={BOARD_CELL_LIMITS[game.variant].max}
+                value={cellSize}
+                onChange={(e) => {
+                  const v = clampBoardCell(game.variant, Number(e.target.value));
+                  setBoardCellByVariant((prev) => ({ ...prev, [game.variant]: v }));
+                }}
+              />
+              <span className="board-size-value" aria-live="polite">
+                {cellSize}px
+              </span>
+            </div>
+            <GameBoard
+              variant={game.variant}
+              board={game.board}
+              cellSize={cellSize}
+              previewCells={previewCells}
+              previewInvalid={previewBad}
+              onHover={setHover}
+              onClickCell={onPlace}
+            />
+            <div className="controls-row">
+              <button type="button" onClick={() => cycleOrient(-1)} disabled={!selectedId || !canInteract}>
+                旋转 ↺
+              </button>
+              <button type="button" onClick={() => cycleOrient(1)} disabled={!selectedId || !canInteract}>
+                旋转 ↻
+              </button>
+              {showUndo && (
+                <button
+                  type="button"
+                  onClick={() => setGame(undo(game) ?? game)}
+                  disabled={game.history.length === 0}
+                >
+                  撤销
+                </button>
+              )}
+            </div>
+            <p className="orient-hint">
+              先点击棋子池选中棋子，再移动鼠标预览，最后点击棋盘落子。旋转可用按钮或键盘{" "}
+              <kbd>[</kbd> / <kbd>]</kbd>。落子后自动轮到下一颜色（无法下子会自动 pass）。
+              {mode === "online" && " 联机模式无撤销，以服务器判定为准。"}
+            </p>
+          </div>
+
+          <aside className="piece-tray-side piece-tray-side--right">
+            <div className="side-panel piece-tray-panel">
+              <div className="tray-column-title">玩家 B</div>
+              <PieceTraysForColors
+                variant={game.variant}
+                game={game}
+                colors={colorsForPlayer(game.variant, 1)}
+                selectedId={selectedId}
+                orient={orient}
+                setSelectedId={setSelectedId}
+                setOrient={setOrient}
+                canInteract={canInteract}
+              />
+            </div>
+          </aside>
         </div>
       </div>
 

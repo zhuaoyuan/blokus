@@ -70,45 +70,46 @@ export function GameBoard({
     previewCells && new Set(previewCells.map((p) => `${p.x},${p.y}`));
 
   return (
-    <div
-      className="board-grid"
-      style={{
-        gridTemplateColumns: `repeat(${w}, ${cellSize}px)`,
-        gridTemplateRows: `repeat(${h}, ${cellSize}px)`,
-        ["--cell-size" as string]: `${cellSize}px`,
-      }}
-      onMouseLeave={() => onHover(null)}
-    >
-      {Array.from({ length: h * w }, (_, i) => {
-        const x = i % w;
-        const y = Math.floor(i / w);
-        const filled = cellBg(variant, board, x, y);
-        const isPrev = prevSet?.has(`${x},${y}`) ?? false;
-        const onBoard = board[y][x] !== null;
-        let cls = "board-cell";
-        if (!onBoard && isPrev) {
-          cls += previewInvalid ? " preview preview-invalid" : " preview";
-        }
-        const corner = !onBoard && isCornerMarker(variant, x, y);
-        const duoS = !onBoard && isDuoStart(variant, x, y);
+    <div className="board-viewport" onMouseLeave={() => onHover(null)}>
+      <div
+        className="board-grid"
+        style={{
+          gridTemplateColumns: `repeat(${w}, ${cellSize}px)`,
+          gridTemplateRows: `repeat(${h}, ${cellSize}px)`,
+          ["--cell-size" as string]: `${cellSize}px`,
+        }}
+      >
+        {Array.from({ length: h * w }, (_, i) => {
+          const x = i % w;
+          const y = Math.floor(i / w);
+          const filled = cellBg(variant, board, x, y);
+          const isPrev = prevSet?.has(`${x},${y}`) ?? false;
+          const onBoard = board[y][x] !== null;
+          let cls = "board-cell";
+          if (!onBoard && isPrev) {
+            cls += previewInvalid ? " preview preview-invalid" : " preview";
+          }
+          const corner = !onBoard && isCornerMarker(variant, x, y);
+          const duoS = !onBoard && isDuoStart(variant, x, y);
 
-        return (
-          <div
-            key={i}
-            className={cls}
-            style={{
-              background: filled ?? undefined,
-              boxShadow: corner
-                ? "inset 0 0 0 2px rgba(255,255,255,0.12)"
-                : duoS
-                  ? "inset 0 0 0 2px rgba(255,255,255,0.18)"
-                  : undefined,
-            }}
-            onMouseEnter={() => onHover({ x, y })}
-            onClick={() => onClickCell({ x, y })}
-          />
-        );
-      })}
+          return (
+            <div
+              key={i}
+              className={cls}
+              style={{
+                background: filled ?? undefined,
+                boxShadow: corner
+                  ? "inset 0 0 0 2px rgba(255,255,255,0.12)"
+                  : duoS
+                    ? "inset 0 0 0 2px rgba(255,255,255,0.18)"
+                    : undefined,
+              }}
+              onMouseEnter={() => onHover({ x, y })}
+              onClick={() => onClickCell({ x, y })}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
