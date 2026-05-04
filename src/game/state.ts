@@ -36,6 +36,10 @@ function cloneHands(h: Hands, variant: Variant): Hands {
   return out;
 }
 
+export function toSnapshot(s: GameState): GameSnapshot {
+  return snapshot(s);
+}
+
 function snapshot(s: GameState): GameSnapshot {
   return {
     variant: s.variant,
